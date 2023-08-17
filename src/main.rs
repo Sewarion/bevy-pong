@@ -17,6 +17,7 @@ const PADDLE_WIDTH: f32 = 10.0;
 const PADDLE_HEIGHT: f32 = 80.0;
 const PADDLE_STARTING_POSITION_X: f32 = 20.0;
 const PADDLE_STARTING_POSITION_Y: f32 = 0.0;
+const PADDLE_SPEED: f32 = 5.0;
 
 // Ball constants
 const BALL_STARTING_POSITION_X: f32 = 0.0;
@@ -56,10 +57,11 @@ fn main() {
         )
         //.insert_resource(PlayerTimer(Timer::from_seconds(2.0, TimerMode::Repeating)))
         .add_systems(Startup, setup_camera)
-        .add_systems(Startup, spawn_players)
         .add_systems(Startup, setup_middle_line)
+        .add_systems(Startup, spawn_players)
         .add_systems(Startup, spawn_ball)
         .add_systems(Update, move_ball)
+        .add_systems(Update, move_player)
         .run();
 }
 
@@ -73,7 +75,7 @@ fn setup_camera(mut commands: Commands) {
     });
 }
 
-#[derive(Component)]
+#[derive(Component, Clone)]
 struct Player(String);
 
 #[derive(Resource)]
@@ -117,7 +119,39 @@ fn spawn_players(
     ));
 }
 
-// TODO: Player movement system
+fn move_player(
+    keyboard_input: Res<Input<KeyCode>>,
+    mut player: Query<(&mut Player, &mut Transform)>,
+    //time_step: Res<FixedTime>,
+) {
+    for (player_name, mut transform) in &mut player {
+        if &player_name.0[..] == "Player1" {
+            //println!("Player1");
+            if keyboard_input.pressed(KeyCode::W)
+                && transform.translation.y < WINDOW_HEIGHT / 2.0 - PADDLE_HEIGHT / 2.0
+            {
+                transform.translation.y += PADDLE_SPEED;
+            }
+            if keyboard_input.pressed(KeyCode::S)
+                && transform.translation.y > -WINDOW_HEIGHT / 2.0 + PADDLE_HEIGHT / 2.0
+            {
+                transform.translation.y -= PADDLE_SPEED;
+            }
+        } else if &player_name.0[..] == "Player2" {
+            //println!("Player2");
+            if keyboard_input.pressed(KeyCode::Up)
+                && transform.translation.y < WINDOW_HEIGHT / 2.0 - PADDLE_HEIGHT / 2.0
+            {
+                transform.translation.y += PADDLE_SPEED;
+            }
+            if keyboard_input.pressed(KeyCode::Down)
+                && transform.translation.y > -WINDOW_HEIGHT / 2.0 + PADDLE_HEIGHT / 2.0
+            {
+                transform.translation.y -= PADDLE_SPEED;
+            }
+        }
+    }
+}
 
 #[derive(Component)]
 struct Ball;
